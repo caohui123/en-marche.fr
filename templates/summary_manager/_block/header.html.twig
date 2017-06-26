@@ -17,19 +17,3 @@
         {% endif %}
     </div>
 {% endblock %}
-
-{% block summary_bottom_part %}
-    <div>
-        <div>
-            {{ app.user.activatedAt|localizeddate('none', 'none', 'fr_FR', null, 'MMMM Y') }}<br>
-            Date d'adhésion
-        </div>
-        <div>
-            23 <br> participations à des events
-        </div>
-        <div>
-            65% <br> profile complété
-        </div>
-    </div>
-{% endblock %}
-
