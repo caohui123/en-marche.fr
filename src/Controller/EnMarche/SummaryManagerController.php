@@ -12,6 +12,7 @@ use AppBundle\Form\LanguageType;
 use AppBundle\Form\SummaryType;
 use AppBundle\Form\TrainingType;
 use AppBundle\Summary\SummaryManager;
+use League\Glide\Signatures\SignatureFactory;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -33,9 +34,17 @@ class SummaryManagerController extends Controller
     {
         $this->disableInProduction();
 
+        $summary = $this->get(SummaryManager::class)->getForAdherent($this->getUser());
+        $pathImage = 'images/'.$summary->getMemberUuid().'.jpg';
+        $signature = SignatureFactory::create($this->getParameter('kernel.secret'))->generateSignature($pathImage, []);
+
         return $this->render('summary_manager/index.html.twig', [
-            'summary' => $this->get(SummaryManager::class)->getForAdherent($this->getUser()),
+            'summary' => $summary,
             'recent_activities' => [], // TODO $this->get(MembershipTracker::class)->getRecentActivitiesForAdherent($this->getUser()),
+            'urlPhoto' => $this->generateUrl('asset_url', [
+                'path' => $pathImage,
+                's' => $signature,
+            ]),
         ]);
     }
 

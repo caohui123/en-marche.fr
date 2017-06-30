@@ -11,6 +11,7 @@ use AppBundle\Membership\ActivityPositions;
 use AppBundle\Summary\Contract;
 use AppBundle\Summary\Contribution;
 use AppBundle\Summary\JobDuration;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use AppBundle\Summary\JobLocation;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Request;
@@ -955,6 +956,34 @@ class SummaryManagerControllerTest extends SqliteWebTestCase
         $this->assertCount(1, $missions->filter('.summary-contact-linked_in'));
         $this->assertCount(1, $missions->filter('.summary-contact-twitter'));
         $this->assertCount(1, $missions->filter('.summary-contact-twitter'));
+    }
+
+    public function testAddProfilePictureToSummary()
+    {
+        // This adherent has a summary
+        $this->authenticateAsAdherent($this->client, 'luciole1989@spambox.fr', 'EnMarche2017');
+        $this->client->request(Request::METHOD_GET, '/images/29461c49-6316-5be1-9ac3-17816bf2d819.jpg');
+        $this->assertStatusCode(Response::HTTP_NOT_FOUND, $this->client);
+
+        $crawler = $this->client->request(Request::METHOD_GET, '/espace-adherent/mon-cv/synthese');
+
+        $profilePicture = new UploadedFile(
+             __DIR__.'/../../Fixtures/image.jpg',
+            'image.jpg',
+            'image/jpeg',
+            631
+        );
+
+        $form = $crawler->filter('form[name=summary]')->form();
+        $this->client->request($form->getMethod(), $form->getUri(), $form->getPhpValues(), ['profilePicture' => $profilePicture]);
+
+        $this->assertStatusCode(Response::HTTP_FOUND, $this->client);
+        $this->assertClientIsRedirectedTo('/espace-adherent/mon-cv', $this->client);
+        $this->client->followRedirect();
+        $this->assertStatusCode(Response::HTTP_OK, $this->client);
+
+        $this->client->request(Request::METHOD_GET, '/images/29461c49-6316-5be1-9ac3-17816bf2d819.jpg');
+        $this->assertStatusCode(Response::HTTP_OK, $this->client);
     }
 
     protected function setUp()
